@@ -131,7 +131,8 @@ void FilterRenderer::MeasureFilterBounds(tgfx::Rect* bounds, const FilterModifie
   }
 }
 
-tgfx::Rect GetClipBounds(Canvas* canvas, const FilterList* filterList) {
+tgfx::Rect GetClipBounds(Canvas* canvas, const FilterList* filterList,
+                         const tgfx::Rect& contentBounds) {
   auto clip = canvas->getTotalClip();
   auto matrix = canvas->getMatrix();
   if (filterList->useParentSizeInput) {
@@ -142,7 +143,7 @@ tgfx::Rect GetClipBounds(Canvas* canvas, const FilterList* filterList) {
   tgfx::Matrix inverted = tgfx::Matrix::I();
   matrix.invert(&inverted);
   clip.transform(inverted);
-  return clip.getBounds();
+  return clip.isEmpty() ? contentBounds : clip.getBounds();
 }
 
 std::shared_ptr<Graphic> FilterRenderer::GetDisplacementMapGraphic(const FilterList* filterList,
@@ -428,7 +429,8 @@ void FilterRenderer::DrawWithFilter(Canvas* parentCanvas, const FilterModifier* 
   auto filterList = MakeFilterList(modifier);
   auto contentBounds = GetContentBounds(filterList.get(), content);
   // 相对于content Bounds的clip Bounds
-  auto clipBounds = GetClipBounds(parentCanvas, filterList.get());
+  auto clipBounds = GetClipBounds(parentCanvas, filterList.get(), contentBounds);
+
   auto filterNodes = MakeFilterNodes(filterList.get(), cache, &contentBounds, clipBounds);
   if (filterNodes.empty()) {
     content->draw(parentCanvas);
