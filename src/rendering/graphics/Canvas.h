@@ -106,7 +106,10 @@ class Canvas {
   }
 
   void clearRect(const tgfx::Rect& rect, const tgfx::Color& color) {
-    canvas->clearRect(rect, color);
+    canvas->save();
+    canvas->clipRect(rect);
+    canvas->clear(color);
+    canvas->restore();
   }
 
   void drawLine(float x0, float y0, float x1, float y1, const tgfx::Paint& paint) {
